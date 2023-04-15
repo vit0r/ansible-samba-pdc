@@ -29,8 +29,20 @@
   vars:
     packages:
       - samba
+      - smbclient
       - vim
       - htop
+
+- name: recursively remove directories
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /var/lib/samba/lock/*
+    - /var/lib/samba/locks/*
+    - /var/lib/samba/cache/*
+    - /var/lib/samba/private/*
+    - /etc/samba/smb.conf
 
 - name: provisioning sambaAD in non-interactive mode
   shell: |
@@ -40,6 +52,12 @@
     --realm={{ ad_realm | upper }} \
     --domain={{ ad_domain | upper }} \
     --adminpass={{ adminpass }}
+
+- name: copy kerberos configuration
+  copy:
+    src: /var/lib/samba/private/krb5.conf
+    dest: /etc/krb5.conf
+    remote_src: yes
 
 - name: pdc services
   systemd:

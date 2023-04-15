@@ -6,6 +6,6 @@
     ad_domain: tadoido
     ad_realm: "{{ ad_domain }}.local"
     ad_hostname: "TADOIDOSVR1"
-    adminpass: "Xpto*&"
+    adminpass: "yVScWhB2FwQ75?jHn*m"
   roles:
     - { role: pdc }
