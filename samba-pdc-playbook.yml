@@ -1,0 +1,11 @@
+- hosts: pdc-servers
+  become: yes
+  remote_user: ubuntu
+  become_user: root
+  vars:
+    ad_domain: tadoido
+    ad_realm: "{{ ad_domain }}.local"
+    ad_hostname: "TADOIDOSVR1"
+    adminpass: "Xpto*&"
+  roles:
+    - { role: pdc }

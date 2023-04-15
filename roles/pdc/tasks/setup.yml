@@ -1,0 +1,52 @@
+# https://wiki.samba.org/index.php/Setting_up_Samba_as_an_Active_Directory_Domain_Controller#Preparing_the_Installation
+# https://wiki.samba.org/index.php/Setting_up_Samba_as_an_NT4_PDC_(Quick_Start)#Preconditions
+
+- name: set new hostname
+  hostname:
+    name: "{{ ad_hostname | replace('.','') }}"
+    use: systemd
+
+- name: add ad address into to hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ ansible_default_ipv4.address }} {{ ad_hostname }} {{ ad_hostname }}.{{ ad_realm }} {{ ad_realm | upper }} {{ ad_realm }} {{ ad_domain }}"
+    create: yes
+
+- name: update
+  package:
+    upgrade: full
+    update_cache: yes
+    cache_valid_time: "3600"
+    install_recommends: yes
+    state: latest
+    autoclean: yes
+    autoremove: yes
+
+- name: install packages
+  package:
+    state: present
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - samba
+      - vim
+      - htop
+
+- name: provisioning sambaAD in non-interactive mode
+  shell: |
+    samba-tool domain provision \
+    --server-role=dc --use-rfc2307 \
+    --dns-backend=SAMBA_INTERNAL \
+    --realm={{ ad_realm | upper }} \
+    --domain={{ ad_domain | upper }} \
+    --adminpass={{ adminpass }}
+
+- name: pdc services
+  systemd:
+    enabled: yes
+    daemon_reload: true
+    state: restarted
+    name: "{{ item }}"
+  with_items:
+    - smbd
+    - nmbd
